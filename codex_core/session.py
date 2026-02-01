@@ -35,3 +35,27 @@ class Session:
             raise FileExistsError(f"Session {self.session_id} already exists.")
         with open(path, "w") as f:
             json.dump(self.to_dict(), f, indent=2)
+
+    @classmethod
+    def load(cls, session_id: str, directory: str = "sessions"):
+        path = os.path.join(directory, f"{session_id}.json")
+        if not os.path.exists(path):
+            raise FileNotFoundError(f"Session {session_id} does not exist.")
+        with open(path, "r") as f:
+            data = json.load(f)
+
+        session = cls(
+            session_id=data["session_id"],
+            created_at=data["created_at"]
+        )
+
+        for event_data in data["events"]:
+            session.add_event(Event(**event_data))
+
+        return session
+
+
+    def save_overwrite(self, directory: str = "sessions"):
+        path = os.path.join(directory, f"{self.session_id}.json")
+        with open(path, "w") as f:
+            json.dump(self.to_dict(), f, indent=2)
